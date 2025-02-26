@@ -1,0 +1,1032 @@
+main.py
+import streamlit as st
+from crop_advisor import CropAdvisor
+from image_analyzer import ImageAnalyzer
+from financial_planning import display_financial_planning
+from dotenv import load_dotenv
+import os
+import base64
+
+# Set page configuration
+st.set_page_config(
+    page_title="Smart Farm Manager",
+    page_icon="🍃",
+    layout="wide"
+)
+
+# Load environment variables
+load_dotenv()
+
+# Language Strings for UI texts
+LANGUAGE_STRINGS = {
+    "en": {
+        "welcome": "Welcome, Farmer!",
+        "page_header": "Farmer's Crop Planning Assistant",
+        "main_header": "Smart Farm Manager",
+        "crop_advisor": "Crop Advisor",
+        "image_analysis": "Image Analysis",
+        "financial_planning": "Financial Planning",
+        "enter_crop_name": "Enter Crop Name",
+        "get_crop_advice": "Get Crop Advice",
+        "analyzing_image": "Analyzing image...",
+        "upload_image": "Upload Crop Image",
+        "get_financial_plan": "Get Financial Plan",
+        "enter_crop_type": "Enter Crop Type",
+        "enter_land_area": "Enter Land Area (acres):",
+        "enter_budget": "Enter Budget (INR):",
+        "manage_crops": "Manage Crops",
+        "view_finances": "View Finances",
+        "ask_ai_assistant": "Ask AI Assistant",
+        "crop_management": "Crop Management",
+        "financial_records": "Financial Records",
+        "track_crops": "Track and manage your crops",
+        "crop_management_desc": "Monitor growth stages, schedule activities, and track yields effectively with our comprehensive crop management system.",
+        "track_finances": "Track income and expenses",
+        "financial_desc": "Monitor financial transactions and generate comprehensive reports to keep track of your farm's financial health.",
+        "ai_assistant": "AI Assistant",
+        "ask_assistant": "How to Grow your Plant Health let's Discuss!",
+        "home_welcome": "Welcome to Smart Farm Manager",
+        "home_subtitle": "Manage your farm efficiently with our comprehensive tools"
+    },
+    "mr": {
+        "welcome": "शेतकरी, तुमचे स्वागत आहे!",
+        "page_header": "शेतकर्‍यासाठी शेती नियोजन सहाय्यक",
+        "main_header": "स्मार्ट फार्म मॅनेजर",
+        "crop_advisor": "पिके सल्ला",
+        "image_analysis": "प्रतिमा विश्लेषण",
+        "financial_planning": "आर्थिक नियोजन",
+        "enter_crop_name": "पिकाचे नाव भरा",
+        "get_crop_advice": "सल्ला मिळवा",
+        "analyzing_image": "प्रतिमा विश्लेषण केले जात आहे...",
+        "upload_image": "पिकाची प्रतिमा अपलोड करा",
+        "get_financial_plan": "आर्थिक योजना मिळवा",
+        "enter_crop_type": "पिकाचे नाव",
+        "enter_land_area": "जमीन क्षेत्रफळ (एकर):",
+        "enter_budget": "बजेट (INR):",
+        "manage_crops": "पिके व्यवस्थापित करा",
+        "view_finances": "वित्त पहा",
+        "ask_ai_assistant": "AI सहाय्यकाला विचारा",
+        "crop_management": "पीक व्यवस्थापन",
+        "financial_records": "आर्थिक नोंदी",
+        "track_crops": "आपली पिके ट्रॅक आणि व्यवस्थापित करा",
+        "crop_management_desc": "आमच्या सर्वसमावेशक पीक व्यवस्थापन प्रणालीसह वाढीचे टप्पे, वेळापत्रक क्रियाकलाप आणि उत्पादन प्रभावीपणे ट्रॅक करा.",
+        "track_finances": "उत्पन्न आणि खर्च ट्रॅक करा",
+        "financial_desc": "आर्थिक व्यवहारांचे निरीक्षण करा आणि आपल्या शेतीच्या आर्थिक आरोग्याचा मागोवा ठेवण्यासाठी सर्वसमावेशक अहवाल तयार करा.",
+        "ai_assistant": "AI सहाय्यक",
+        "ask_assistant": "तुमच्या वनस्पतीच्या आरोग्याचे संवर्धन कसे करावे ते चर्चा करू!",
+        "home_welcome": "स्मार्ट फार्म मॅनेजरमध्ये आपले स्वागत आहे",
+        "home_subtitle": "आमच्या सर्वसमावेशक साधनांसह आपल्या शेतीचे कार्यक्षमतेने व्यवस्थापन करा"
+    }
+}
+
+# Sidebar language selection with human-readable options
+lang_option = st.sidebar.selectbox("Select Language / भाषा निवडा", ["English", "मराठी"])
+language = "en" if lang_option == "English" else "mr"
+
+def get_base64_encoded_image(image_path):
+    """Get base64 encoded image to use as background"""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+def inject_custom_css():
+    """Inject custom CSS including the dynamic background"""
+    with open("style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    
+    # Add additional CSS for the homepage layout
+    st.markdown("""
+    <style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1932&q=80");
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 80px 20px;
+        text-align: center;
+        margin-bottom: 40px;
+        border-radius: 0;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px #000000;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        text-shadow: 1px 1px 2px #000000;
+    }
+    
+    .feature-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .feature-icon {
+        font-size: 40px;
+        color: #2E7D32;
+        margin-bottom: 20px;
+    }
+    
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #2E7D32;
+    }
+    
+    .feature-description {
+        color: #333;
+        margin-bottom: 20px;
+    }
+    
+    .feature-button {
+        background-color: #2E7D32;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-align: center;
+        display: inline-block;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+    }
+    
+    .feature-button:hover {
+        background-color: #66BB6A;
+        text-decoration: none;
+    }
+    
+    .assistant-image {
+        max-width: 150px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .stButton button {
+        background-color: #2E7D32;
+        color: white;
+        font-weight: 600;
+        padding: 0.7rem 1.8rem;
+        border-radius: 8px;
+    }
+    
+    .stButton button:hover {
+        background-color: #66BB6A;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+def inject_header():
+    """Create the application header"""
+    header = f"""
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <span>🍃 {LANGUAGE_STRINGS[language]['main_header']}</span>
+            </div>
+            <div class="user-actions">
+                <span>{LANGUAGE_STRINGS[language]['welcome']}</span>
+                <a href="#" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+    """
+    st.markdown(header, unsafe_allow_html=True)
+
+def inject_footer():
+    """Create the application footer"""
+    footer = """
+    <footer>
+        <div class="footer-content">
+            <div class="footer-left">
+                <p>© 2025 Smart Farm Manager. All rights reserved.</p>
+            </div>
+            <div class="footer-right">
+                <a href="#"><b>About</b></a>
+                <a href="#"><b>Contact</b></a>
+                <a href="#"><b>Privacy</b></a>
+                <span><b>Created by Team AgniDev</b></span>
+            </div>
+        </div>
+    </footer>
+    """
+    st.markdown(footer, unsafe_allow_html=True)
+
+def display_home_page():
+    """Display the home page with feature cards"""
+    # Hero section
+    st.markdown(f"""
+    <div class="hero-section">
+        <h1 class="hero-title">{LANGUAGE_STRINGS[language]['home_welcome']}</h1>
+        <p class="hero-subtitle">{LANGUAGE_STRINGS[language]['home_subtitle']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Feature cards in three columns
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="feature-card">
+            <div class="feature-icon">🌱</div>
+            <h3 class="feature-title">{LANGUAGE_STRINGS[language]['crop_management']}</h3>
+            <p class="feature-description">{LANGUAGE_STRINGS[language]['track_crops']}</p>
+            <p class="feature-description">{LANGUAGE_STRINGS[language]['crop_management_desc']}</p>
+            <a href="#" class="feature-button">{LANGUAGE_STRINGS[language]['manage_crops']}</a>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="feature-card">
+            <div style="text-align: center;">
+                <img src="https://cdn.icon-icons.com/icons2/1371/PNG/512/robot03_90832.png" class="assistant-image" alt="AI Assistant">
+            </div>
+            <h3 class="feature-title" style="text-align: center;">{LANGUAGE_STRINGS[language]['ai_assistant']}</h3>
+            <p class="feature-description" style="text-align: center;">{LANGUAGE_STRINGS[language]['ask_assistant']}</p>
+            <div style="text-align: center;">
+                <a href="#" class="feature-button">{LANGUAGE_STRINGS[language]['ask_ai_assistant']}</a>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3 class="feature-title">{LANGUAGE_STRINGS[language]['financial_records']}</h3>
+            <p class="feature-description">{LANGUAGE_STRINGS[language]['track_finances']}</p>
+            <p class="feature-description">{LANGUAGE_STRINGS[language]['financial_desc']}</p>
+            <a href="#" class="feature-button">{LANGUAGE_STRINGS[language]['view_finances']}</a>
+        </div>
+        """, unsafe_allow_html=True)
+
+def display_crop_advisor():
+    """Display the crop advisor tab content"""
+    advisor = CropAdvisor(language=language)
+    st.subheader(LANGUAGE_STRINGS[language]['crop_advisor'])
+    crop_name = st.text_input(
+        LANGUAGE_STRINGS[language]['enter_crop_name'],
+        help="E.g., Rice, Wheat, Maize etc." if language=="en" else "उदा., तांदूळ, गहू, मका इ."
+    )
+    if st.button(LANGUAGE_STRINGS[language]['get_crop_advice']):
+        with st.spinner("Fetching advice..." if language=="en" else "सल्ला मिळवत आहे..."):
+            advice, error = advisor.get_crop_advice(crop_name)
+            if error:
+                st.error(error)
+            else:
+                st.markdown(f"<div class='chat-response'><strong>{'Advice' if language=='en' else 'सल्ला'}:</strong> {advice}</div>", unsafe_allow_html=True)
+
+def display_image_analysis():
+    """Display the image analysis tab content"""
+    st.subheader(LANGUAGE_STRINGS[language]['image_analysis'])
+    uploaded_file = st.file_uploader(LANGUAGE_STRINGS[language]['upload_image'], type=['jpg', 'jpeg', 'png'], accept_multiple_files=False)
+    if uploaded_file:
+        try:
+            analyzer = ImageAnalyzer(language=language)
+        except Exception as e:
+            st.error(f"Initialization Error: {str(e)}")
+            return
+        with st.spinner(LANGUAGE_STRINGS[language]['analyzing_image']):
+            image_data = uploaded_file.getvalue()
+            analysis, error = analyzer.analyze_crop_image(image_data)
+            st.image(image_data, use_column_width=True)
+            if error:
+                st.error(f"Analysis Error: {error}")
+            elif analysis:
+                st.markdown(f"<div class='chat-response'><strong>{'Analysis' if language=='en' else 'विश्लेषण'}:</strong> {analysis}</div>", unsafe_allow_html=True)
+
+def main():
+    """Main application function"""
+    # Load custom CSS
+    inject_custom_css()
+    
+    inject_header()
+    
+    st.markdown("<main>", unsafe_allow_html=True)
+    
+    # Display Marathi specific text if language is Marathi
+    if language == "mr":
+        st.markdown("<div class='marathi-text'></div>", unsafe_allow_html=True)
+
+    # Create a radio button for navigation that looks like tabs
+    app_mode = st.sidebar.radio(
+        "Navigation",
+        ["Home", LANGUAGE_STRINGS[language]['crop_advisor'], 
+         LANGUAGE_STRINGS[language]['image_analysis'], 
+         LANGUAGE_STRINGS[language]['financial_planning']]
+    )
+    
+    if app_mode == "Home":
+        display_home_page()
+    else:
+        tabs = st.tabs([
+            LANGUAGE_STRINGS[language]['crop_advisor'],
+            LANGUAGE_STRINGS[language]['image_analysis'],
+            LANGUAGE_STRINGS[language]['financial_planning']
+        ])
+        
+        active_tab_index = ["Home", LANGUAGE_STRINGS[language]['crop_advisor'], 
+                          LANGUAGE_STRINGS[language]['image_analysis'], 
+                          LANGUAGE_STRINGS[language]['financial_planning']].index(app_mode) - 1
+        
+        with tabs[0]:
+            if active_tab_index == 0:
+                display_crop_advisor()
+        
+        with tabs[1]:
+            if active_tab_index == 1:
+                display_image_analysis()
+        
+        with tabs[2]:
+            if active_tab_index == 2:
+                display_financial_planning(language)
+    
+    st.markdown("</main>", unsafe_allow_html=True)
+    
+    inject_footer()
+
+if __name__ == "__main__":
+    main()
+
+
+image_analyzer.py
+import os
+from typing import Optional, Tuple
+import google.generativeai as genai
+from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
+class ImageAnalyzer:
+    def __init__(self, language="en"):
+        """
+        Initialize the ImageAnalyzer with specified language support
+        
+        Args:
+            language (str): Language code ('en' for English, 'mr' for Marathi)
+        """
+        self.language = language
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            logger.error("GOOGLE_API_KEY environment variable not found")
+            raise ValueError("GOOGLE_API_KEY is not set. Please add it to your .env file.")
+        
+        # Configure the generative AI
+        try:
+            genai.configure(api_key=api_key)
+            # Use Gemini 1.5 Flash for fast image analysis
+            self.model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+            logger.info(f"ImageAnalyzer initialized with language: {language}")
+        except Exception as e:
+            logger.error(f"Error initializing generative AI model: {str(e)}")
+            raise
+        
+        # Set language-specific prompts
+        if self.language == "mr":
+            self.analysis_prompt = (
+                "तुम्ही भारतीय शेती आणि पिकांच्या आरोग्यतज्ञ आहात. दिलेल्या पिकाच्या प्रतिमेचे सखोल विश्लेषण करा. "
+                "कृपया खालील बाबींचे पालन करा:\n"
+                "1. प्रतिमेतून पिकाचे नाव आणि वाढीचा टप्पा ओळखा व नमूद करा.\n"
+                "2. पानांवरील रंग बदल, डाग, मुरझाणे किंवा इतर लक्षणे तपासा.\n"
+                "3. संभाव्य रोग किंवा पोषक तत्त्वांच्या कमतरतेची शक्यता आणि त्यावर विश्वासाची पातळी नमूद करा.\n"
+                "4. अतिरिक्त पाणी देणे, खत देणे किंवा कीटक नियंत्रणासाठी तात्काळ उपाय सुचवा.\n"
+                "5. आवश्यक असल्यास अधिक तपासणी किंवा प्रयोगशाळेची शिफारस करा.\n"
+                "6. विश्लेषण करताना स्थानिक आणि हंगामानुसार परिस्थिती विचारात घ्या.\n"
+                "7. शेवटी उत्तराचा सारांश द्या जेणेकरून शेतकऱ्याला सर्वात महत्त्वाची माहिती वाचता येईल.\n"
+                "जर प्रतिमा शेतीशी संबंधित नसेल, तर उत्तर द्या: 'दिलेली प्रतिमा शेतीशी संबंधित दिसत नाही. कृपया वैध पिकाची प्रतिमा अपलोड करा.'"
+            )
+        else:
+            self.analysis_prompt = (
+                "You are an expert agricultural assistant specialized in crop health analysis for Indian farmers. Analyze the provided crop image thoroughly. "
+                "Please perform the following steps in your analysis:\n"
+                "1. Identify and state the crop type and its growth stage visible in the image.\n"
+                "2. Describe any visible symptoms such as discoloration, spots, wilting, or lesions on the leaves or stems.\n"
+                "3. List possible diagnoses with associated confidence levels for each potential disease or nutrient deficiency.\n"
+                "4. Provide region-specific recommendations for immediate actions such as additional watering, fertilization, or pest treatment.\n"
+                "5. Advise if further information or lab testing is recommended for confirmation.\n"
+                "6. Consider the Indian regional context and seasonal factors while formulating your analysis.\n"
+                "7. Conclude with a summary of key findings and recommendations that would be most valuable to the farmer.\n"
+                "If the image does not appear to be related to a crop, respond with: 'The image provided does not seem to be related to an agricultural crop. Please upload a valid crop image.'"
+            )
+
+    def analyze_crop_image(self, image_data: bytes) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Analyze the provided crop image using the AI model
+        
+        Args:
+            image_data (bytes): The image data to analyze
+            
+        Returns:
+            Tuple[Optional[str], Optional[str]]: A tuple containing (analysis_text, error_message)
+        """
+        try:
+            logger.info("Analyzing crop image")
+            response = self.model.generate_content([
+                self.analysis_prompt,
+                {"mime_type": "image/jpeg", "data": image_data}
+            ])
+            
+            if response.text:
+                logger.info("Image analysis successful")
+                return response.text, None
+            
+            logger.warning("No analysis generated from the AI model")
+            return None, "No analysis generated. Please try with a clearer image." if self.language == "en" else "विश्लेषण निर्माण झाले नाही. कृपया अधिक स्पष्ट प्रतिमेसह प्रयत्न करा."
+        
+        except Exception as e:
+            logger.error(f"Error analyzing crop image: {str(e)}")
+            error_msg = f"Error: {str(e)}"
+            
+            # Provide more user-friendly error messages based on error type
+            if "API key" in error_msg:
+                return None, "Invalid API key configuration. Please contact support." if self.language == "en" else "अवैध API की कॉन्फिगरेशन. कृपया सपोर्टशी संपर्क साधा."
+            elif "network" in error_msg.lower() or "timeout" in error_msg.lower():
+                return None, "Network error. Please check your internet connection and try again." if self.language == "en" else "नेटवर्क त्रुटी. कृपया आपले इंटरनेट कनेक्शन तपासा आणि पुन्हा प्रयत्न करा."
+            elif "content filtered" in error_msg.lower():
+                return None, "The image couldn't be processed. Please upload a different crop image." if self.language == "en" else "प्रतिमेवर प्रक्रिया करणे शक्य झाले नाही. कृपया वेगळी पीक प्रतिमा अपलोड करा."
+            
+            return None, f"Analysis failed: {error_msg}" if self.language == "en" else f"विश्लेषण अयशस्वी: {error_msg}"
+
+
+
+crop_advisor.py
+import os
+import google.generativeai as genai
+from typing import Optional, Tuple
+from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
+class CropAdvisor:
+    def __init__(self, language="en"):
+        """
+        Initialize the CropAdvisor with specified language support
+        
+        Args:
+            language (str): Language code ('en' for English, 'mr' for Marathi)
+        """
+        self.language = language
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            logger.error("GOOGLE_API_KEY environment variable not found")
+            raise ValueError("GOOGLE_API_KEY not found. Please set it in your .env file.")
+        
+        # Configure the generative AI
+        try:
+            genai.configure(api_key=api_key)
+            # Use Gemini 1.5 Pro for comprehensive text-based advice
+            self.model = genai.GenerativeModel('models/gemini-1.5-pro-002')
+            logger.info(f"CropAdvisor initialized with language: {language}")
+        except Exception as e:
+            logger.error(f"Error initializing generative AI model: {str(e)}")
+            raise
+        
+        # Set language-specific prompts
+        if self.language == "mr":
+            self.base_prompt = (
+                "तुम्ही भारतीय शेतीत तज्ञ आहात आणि शेतकऱ्यांना पिकांच्या आरोग्य, रोग ओळख आणि सर्वोत्तम शेतीच्या पद्धतींबाबत सल्ला देण्यात माहिर आहात. "
+                "खालील पिकासाठी विस्तृत, सखोल आणि पुराव्यानुसार आधारभूत योजना द्या. "
+                "तुमच्या विश्लेषणात खालील बाबींचा समावेश असावा:\n"
+                "1. पिकाची निवड आणि बियांची गुणवत्ता तपासणी.\n"
+                "2. जमीन तयार करणे, मातीची तपासणी आणि सुधारणा यासाठी शिफारसी.\n"
+                "3. स्थानिक हवामानानुसार पेरणी व लागवडीच्या पद्धती.\n"
+                "4. पाण्याच्या उपलब्धतेनुसार सिंचनाची गरज.\n"
+                "5. खत आणि पोषक तत्व व्यवस्थापन, सेंद्रिय आणि रासायनिक दोन्ही पर्याय.\n"
+                "6. कीटक व रोग नियंत्रणासाठी एकात्मिक पद्धती आणि शिफारसी.\n"
+                "7. वाढीची निगराणी आणि कापणीची योग्य वेळ.\n"
+                "8. कापणी नंतरची प्रक्रिया, साठवण आणि विक्रीसंबंधी योजना.\n"
+                "9. पिक, जमीन आणि बजेटच्या आधारे आर्थिक नियोजन टिप्स.\n"
+                "10. महाराष्ट्रात उपलब्ध असलेल्या शासकीय योजना व सबसिडीचा उल्लेख करा.\n"
+                "जर इनपुट वैध नसेल किंवा शेतीशी संबंधित नसेल, तर उत्तर द्या: 'दिलेला इनपुट शेतीशी संबंधित दिसत नाही. कृपया वैध पिकाचे नाव भरा.'\n\n"
+                "पिकाचे नाव: "
+            )
+        else:
+            self.base_prompt = (
+                "You are an expert agricultural assistant specialized in providing advice to Indian farmers about crop health, disease identification, and best farming practices. "
+                "Provide a comprehensive, detailed, and evidence-based plan for cultivating the specified crop in Indian conditions. "
+                "Your analysis should include the following aspects:\n"
+                "1. Crop selection and seed quality considerations, with specific varieties suited for Indian regions.\n"
+                "2. Land preparation including soil testing and amendment recommendations for Indian soil types.\n"
+                "3. Sowing and planting methods suitable for the region's climate and seasonal patterns in India.\n"
+                "4. Irrigation requirements based on local water availability and conservation techniques.\n"
+                "5. Fertilization and nutrient management, including both organic and inorganic options accessible in India.\n"
+                "6. Pest and disease management strategies, including integrated pest management practices suited for Indian agriculture.\n"
+                "7. Growth monitoring and timing for harvest optimal for Indian market conditions.\n"
+                "8. Post-harvest processing, storage, and market strategies for Indian agricultural markets.\n"
+                "9. Financial planning tips tailored to the crop, land, and budget considerations of an Indian farmer.\n"
+                "10. Include references to any government schemes or subsidies available for this crop.\n"
+                "If the input is invalid or not related to agriculture, reply: 'The input provided does not seem to relate to agricultural practices. Please provide a valid crop name.'\n\n"
+                "Crop Name: "
+            )
+            
+    def get_crop_advice(self, crop_name: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Get detailed advice for the specified crop
+        
+        Args:
+            crop_name (str): The name of the crop to get advice for
+            
+        Returns:
+            Tuple[Optional[str], Optional[str]]: A tuple containing (advice_text, error_message)
+        """
+        try:
+            if not crop_name.strip():
+                return None, ("Please enter a valid crop name." if self.language=="en" else "कृपया वैध पिकाचे नाव भरा.")
+            
+            logger.info(f"Getting crop advice for: {crop_name}")
+            prompt = f"{self.base_prompt}{crop_name}"
+            
+            # Set safety settings to allow agricultural content
+            safety_settings = [
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                },
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                }
+            ]
+            
+            response = self.model.generate_content(
+                prompt, 
+                safety_settings=safety_settings,
+                generation_config={
+                    "temperature": 0.2,
+                    "top_p": 0.95,
+                    "top_k": 40,
+                    "max_output_tokens": 4096,
+                }
+            )
+            
+            if not response.text:
+                logger.warning(f"Empty response for crop: {crop_name}")
+                return None, "Failed to generate advice. Please try again." if self.language=="en" else "सल्ला मिळवण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा."
+                
+            logger.info(f"Successfully generated advice for: {crop_name}")
+            return response.text, None
+            
+        except Exception as e:
+            logger.error(f"Error generating crop advice: {str(e)}")
+            error_msg = f"AI Error: {str(e)}"
+            
+            # Provide more user-friendly error messages
+            if "API key" in error_msg.lower():
+                return None, "API key configuration error. Please contact support." if self.language=="en" else "API की कॉन्फिगरेशन त्रुटी. कृपया सपोर्टशी संपर्क साधा."
+            elif "network" in error_msg.lower() or "timeout" in error_msg.lower():
+                return None, "Network error. Please check your internet connection." if self.language=="en" else "नेटवर्क त्रुटी. कृपया आपले इंटरनेट कनेक्शन तपासा."
+            elif "content filtered" in error_msg.lower():
+                return None, "Content filtered. Please try with different wording." if self.language=="en" else "सामग्री फिल्टर केली. कृपया वेगळ्या शब्दांसह प्रयत्न करा."
+                
+            return None, error_msg
+
+
+financial_planning.py
+import os
+import streamlit as st
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class FinancialPlanner:
+    def __init__(self, language="en"):
+        self.language = language
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY is not set. Please set it in your .env file.")
+        genai.configure(api_key=api_key)
+        # Use the same high-quality multimodal model for text-based financial planning
+        self.model = genai.GenerativeModel('models/gemini-1.5-pro-002')
+        # Set appropriate prompts based on language
+        self.set_prompts()
+    
+    def set_prompts(self):
+        """Set financial planning prompts based on selected language"""
+        if self.language == "mr":
+            self.financial_prompt = (
+                "तुम्ही भारतीय शेतकऱ्यांसाठी आर्थिक नियोजन आणि बजेटिंगमध्ये तज्ञ आहात. खालील इनपुट्सच्या आधारे: पिकाचे नाव, जमीन क्षेत्रफळ (एकर मध्ये), आणि बजेट (INR मध्ये), "
+                "एक विस्तृत आर्थिक नियोजन रणनीती द्या. तुमच्या सल्ल्यात खालील बाबींचा समावेश असावा:\n"
+                "1. जमीन तयार करणे, बियाणे, खत, सिंचन, मजुरी आणि कापणी नंतरच्या प्रक्रियेचा अंदाजे खर्च.\n"
+                "2. संबंधित पिकासाठी आणि जमीन क्षेत्रफळासाठी उपलब्ध शासकीय योजना, सबसिडी किंवा कर्जाबद्दल शिफारस.\n"
+                "3. खर्च वाचवण्याच्या आणि नफा वाढवण्याच्या रणनीती, बाजार विश्लेषण आणि जोखमीचे व्यवस्थापन.\n"
+                "4. बजेटच्या मर्यादेनुसार व्यवसाय वाढवण्याचे उपाय.\n"
+                "5. आर्थिक विश्लेषण सुस्पष्ट, संरचित आणि व्यावहारिक स्वरूपात प्रदान करा.\n"
+                "जर एखादा इनपुट अपूर्ण किंवा अस्पष्ट असेल तर स्पष्टीकरण मागा.\n\n"
+                "पिकाचे नाव: {crop}\nजमीन क्षेत्रफळ (एकर): {land}\nबजेट (INR): {budget}\n"
+            )
+        else:
+            self.financial_prompt = (
+                "You are an expert agricultural financial advisor specialized in planning and budgeting for Indian farmers. "
+                "Based on the following inputs: Crop type, Land area (in acres), and Budget (in INR), provide a detailed financial planning strategy tailored to Indian agricultural context. "
+                "Your advice should include:\n"
+                "1. An estimated cost breakdown for land preparation, seeds, fertilizers, irrigation, labor, and post-harvest processing.\n"
+                "2. Recommendations on government schemes, subsidies, or loans available for the specified crop and land size in India.\n"
+                "3. Strategies for cost-saving and maximizing profit, including market analysis and risk mitigation.\n"
+                "4. Suggestions for scaling up operations if the budget allows.\n"
+                "5. Present your financial analysis in a clear, structured, and actionable format.\n"
+                "If any input is missing or unclear, ask for clarification.\n\n"
+                "Crop Type: {crop}\nLand Area (acres): {land}\nBudget (INR): {budget}\n"
+            )
+
+    def get_financial_plan(self, crop: str, land: float, budget: float) -> (str, str):
+        """
+        Get financial plan based on crop, land, and budget
+        
+        Args:
+            crop: The name of the crop
+            land: Land area in acres
+            budget: Budget in INR
+            
+        Returns:
+            Tuple containing plan text and error message (if any)
+        """
+        if not crop.strip():
+            return None, "Please enter a valid crop name." if self.language=="en" else "कृपया वैध पिकाचे नाव भरा."
+        if land <= 0:
+            return None, "Please enter a valid land area." if self.language=="en" else "कृपया वैध जमीन क्षेत्रफळ भरा."
+        if budget <= 0:
+            return None, "Please enter a valid budget." if self.language=="en" else "कृपया वैध बजेट भरा."
+        
+        prompt = self.financial_prompt.format(crop=crop, land=land, budget=budget)
+        try:
+            response = self.model.generate_content(prompt)
+            if response.text:
+                return response.text, None
+            return None, "No financial plan generated." if self.language=="en" else "आर्थिक योजना उत्पन्न झाली नाही."
+        except Exception as e:
+            return None, f"Error: {str(e)}"
+
+def display_financial_planning(language="en"):
+    """
+    Display the financial planning UI
+    
+    Args:
+        language: Language code (en/mr)
+    """
+    # Get language strings dictionary
+    LANGUAGE_STRINGS = {
+        "en": {
+            "financial_planning": "Financial Planning",
+            "enter_crop_type": "Enter Crop Type",
+            "enter_land_area": "Enter Land Area (acres):",
+            "enter_budget": "Enter Budget (INR):",
+            "get_financial_plan": "Get Financial Plan",
+            "plan": "Plan"
+        },
+        "mr": {
+            "financial_planning": "आर्थिक नियोजन",
+            "enter_crop_type": "पिकाचे नाव भरा",
+            "enter_land_area": "जमीन क्षेत्रफळ (एकर):",
+            "enter_budget": "बजेट (INR):",
+            "get_financial_plan": "आर्थिक योजना मिळवा",
+            "plan": "योजना"
+        }
+    }
+    
+    st.markdown(f"<h2 style='color: #2E7D32;'>{LANGUAGE_STRINGS[language]['financial_planning']}</h2>", unsafe_allow_html=True)
+    
+    crop = st.text_input(LANGUAGE_STRINGS[language]['enter_crop_type'])
+    land = st.number_input(LANGUAGE_STRINGS[language]['enter_land_area'], min_value=0.0, step=0.1, format="%.2f")
+    budget = st.number_input(LANGUAGE_STRINGS[language]['enter_budget'], min_value=0.0, step=1000.0, format="%.2f")
+    
+    if st.button(LANGUAGE_STRINGS[language]['get_financial_plan']):
+        try:
+            planner = FinancialPlanner(language)
+            with st.spinner("Generating financial plan..." if language=="en" else "आर्थिक योजना तयार केली जात आहे..."):
+                plan, error = planner.get_financial_plan(crop, land, budget)
+                if error:
+                    st.error(error)
+                else:
+                    st.markdown(f"<div class='chat-response'><strong>{LANGUAGE_STRINGS[language]['plan']}:</strong> {plan}</div>", unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Initialization Error: {str(e)}")
+
+style.css
+/* BASE STYLE */
+body {
+    background-color: #f5f7fa;
+    color: #333333;
+    font-family: 'Montserrat', 'Playfair Display', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    position: relative;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+main {
+    margin-top: 70px;
+    padding: 20px 50px 100px;
+    min-height: calc(100vh - 170px);
+}
+
+/* HEADER */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%; 
+    z-index: 9999;
+    background: linear-gradient(90deg, #2E7D32, #66BB6A);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;  
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px; 
+    margin: 0 auto;    
+    padding: 0.5rem 2rem; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo img {
+    height: 40px;
+    width: 40px;
+}
+
+.user-actions {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logout-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+    color: #2E7D32;
+    margin-bottom: 1rem;
+}
+
+/* Cards & Sections */
+.image-analysis {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+/* Chat response style */
+.chat-response {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    margin: 1.5rem 0;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #2E7D32;
+}
+
+/* BUTTONS */
+button, .btn-primary, .stButton button {
+    background-color: #2E7D32 !important;
+    color: #ffffff !important;
+    padding: 0.7rem 1.8rem;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    font-weight: 600 !important;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover, .btn-primary:hover, .stButton button:hover {
+    background-color: #66BB6A !important;
+    transform: translateY(-2px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+        padding: 1rem;
+    }
+    
+    main {
+        padding: 20px 20px 100px;
+        margin-top: 100px;
+    }
+    
+    .logo {
+        font-size: 1.5rem;
+    }
+    
+    .user-actions {
+        font-size: 0.9rem;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .footer-right {
+        margin-right: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .footer-right a, .footer-right span {
+        margin-left: 0;
+    }
+}
+
+.block-container {
+    max-width: 1200px !important;        
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    margin: 0 auto !important;         
+}
+
+/* FOOTER */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 70px;
+    width: 100%;
+    padding: 0;
+    background: linear-gradient(90deg, #2E7D32, #66BB6A);
+    color: #ffffff;
+    text-align: center;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+}
+
+.footer-content {
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+.footer-left p {
+    margin: 0;
+}
+
+.footer-right {
+    display: flex;
+    align-items: center;
+}
+
+.footer-right a, .footer-right span {
+    margin-left: 1.5rem;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-right a:hover {
+    text-decoration: underline;
+}
+
+/* Streamlit specific overrides */
+.st-emotion-cache-16txtl3 {
+    padding-top: 0 !important;
+}
+
+.st-emotion-cache-18ni7ap {
+    background-color: rgba(46, 125, 50, 0.1) !important;
+}
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 2px;
+    background-color: #f0f0f0;
+    border-radius: 10px 10px 0 0;
+    padding: 0 20px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: transparent;
+    border-radius: 10px 10px 0 0;
+    padding: 10px 20px;
+    color: #333;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: white !important;
+    color: #2E7D32 !important;
+    font-weight: bold;
+}
+
+.stTabs [data-baseweb="tab-panel"] {
+    background-color: white;
+    border-radius: 0 0 10px 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Input fields */
+.st-emotion-cache-q8sbsg {
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+}
+
+.st-emotion-cache-q8sbsg:focus {
+    border-color: #2E7D32 !important;
+    box-shadow: 0 0 0 1px #2E7D32 !important;
+}
+
+/* File uploader */
+.st-emotion-cache-1erivf3 {
+    border: 2px dashed #2E7D32 !important;
+    border-radius: 10px !important;
+    padding: 30px !important;
+}
+
+/* Sidebar */
+.st-emotion-cache-6qob1r {
+    background-color: #f8f9fa !important;
+}
+
+.st-emotion-cache-16idsys {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Control sidebar width */
+[data-testid="stSidebar"] {
+    min-width: 250px !important;
+    max-width: 250px !important;
+}
+
+/* Make the language selector more prominent */
+[data-testid="stSidebar"] .stSelectbox {
+    margin-bottom: 2rem;
+}
+
+.marathi-text {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+}

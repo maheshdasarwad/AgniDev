@@ -1,0 +1,172 @@
+/* --------------------------------
+   RESET & BASE STYLES
+-------------------------------- */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    /* Main page background: white, black text for visibility */
+    background: #ffffff;
+    color: #000000;
+    font-family: 'Montserrat', 'Playfair Display', sans-serif;
+}
+
+/* Override Streamlit container to control width & horizontal padding */
+.block-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+/* --------------------------------
+   HEADER (PINNED AT TOP)
+-------------------------------- */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    background: linear-gradient(90deg, #2E7D32, #66BB6A);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo img {
+    height: 40px;
+    width: 40px;
+}
+
+.user-actions {
+    font-size: 1rem;
+}
+
+/* --------------------------------
+   MAIN CONTENT
+-------------------------------- */
+main {
+    margin-top: -3rem;
+    padding-bottom: 80px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+h1, h2, h3, h4 {
+    color: #2E7D32;
+    margin-bottom: 1rem;
+}
+
+.image-analysis {
+    background-color: #000000;
+    color: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.chat-response {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    margin: 1.5rem 0;
+    font-size: 1.1rem;
+}
+
+/* --------------------------------
+   BUTTONS
+-------------------------------- */
+button, .btn-primary {
+    background-color: #2E7D32;
+    color: #ffffff;
+    padding: 0.7rem 1.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+button:hover, .btn-primary:hover {
+    background-color: #66BB6A;
+}
+
+/* --------------------------------
+   RESPONSIVE HEADER
+-------------------------------- */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* --------------------------------
+   FOOTER (PINNED AT BOTTOM)
+-------------------------------- */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 70px;
+    width: 100%;
+    background: linear-gradient(90deg, #2E7D32, #66BB6A);
+    color: #ffffff;
+    text-align: center;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    padding: 1rem 0;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-left p {
+    margin: 0;
+    padding: 0;
+}
+
+.footer-right {
+    margin-right: 1rem;
+}
+
+.footer-right a, .footer-right span {
+    margin-left: 1rem;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-right a:hover {
+    text-decoration: underline;
+}
