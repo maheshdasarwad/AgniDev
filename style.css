@@ -82,26 +82,48 @@ def display_crop_advisor():
         f"<div class='chat-response marathi-text'><strong>{'सल्ला'}:</strong> {advice}</div>",
         unsafe_allow_html=True
     )
-def inject_footer():
-    """
-    Renders the fixed footer at the bottom of the page.
-    """
-    footer = """
-    <footer>
-        <div class="footer-content">
-            <div class="footer-left">
-                <p>© 2025 Smart Farm Manager. All rights reserved.</p>
+def inject_header():
+    header = f"""
+    <header>
+        <div class="header-content">
+            <div class="logo marathi-text">
+                <span>🍃 {LANGUAGE_STRINGS[st.session_state.language]['main_header']}</span>
             </div>
-            <div class="footer-right">
-           <!-- <a href="#"><b>About</b></a>
-                <a href="#"><b>Contact</b></a>
-                <a href="#"><b>Privacy</b></a>  -->
-                <span><b>Created by Team AgniDev</b></span>
+            
+            <div class="language-selector-container">
+                <div class="language-toggle" onclick="toggleLanguage()">
+                    <div class="hamburger-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="language-label marathi-text">
+                        {'भाषा निवडा' if st.session_state.language == 'mr' else 'Select Language'}
+                    </span>
+                </div>
+                
+                <div class="language-dropdown {'show' if st.session_state.show_lang else ''}">
+                    <a href="?lang=mr" class="lang-option marathi-text">मराठी</a>
+                    <a href="?lang=en" class="lang-option">English</a>
+                </div>
             </div>
         </div>
-    </footer>
+    </header>
+    
+    <script>
+        function toggleLanguage() {{
+            const dropdown = document.querySelector('.language-dropdown');
+            dropdown.classList.toggle('show');
+            
+            document.addEventListener('click', (event) => {{
+                if (!event.target.closest('.language-selector-container')) {{
+                    dropdown.classList.remove('show');
+                }}
+            }});
+        }}
+    </script>
     """
-    st.markdown(footer, unsafe_allow_html=True)
+    st.markdown(header, unsafe_allow_html=True)
 
 def display_crop_advisor():
     """
