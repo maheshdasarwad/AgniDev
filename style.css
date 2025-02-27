@@ -163,29 +163,21 @@ def main():
     
     if lang_param in ["mr", "en"]:
         st.session_state.language = lang_param
-
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    
     inject_header()
     st.markdown("<main>", unsafe_allow_html=True)
-
     tabs = st.tabs([
         LANGUAGE_STRINGS[language]['crop_advisor'],
         LANGUAGE_STRINGS[language]['image_analysis'],
         LANGUAGE_STRINGS[language]['financial_planning']
     ])
-    
     with tabs[0]:
         display_crop_advisor()
-    
     with tabs[1]:
         display_image_analysis()
-    
     with tabs[2]:
         display_financial_planning(language)
-    
-    
     st.markdown("</main>", unsafe_allow_html=True)
     inject_footer()
 
