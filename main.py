@@ -37,7 +37,7 @@ LANGUAGE_STRINGS = {
         "welcome": "शेतकरी, तुमचे स्वागत आहे!",
         "page_header": "शेतकर्‍यासाठी शेती नियोजन सहाय्यक",
         "main_header": "स्मार्ट फार्म मॅनेजर",
-        "crop_advisor": "पिके सल्ला",
+        "crop_advisor": "पिक सल्ला",
         "image_analysis": "प्रतिमा विश्लेषण",
         "financial_planning": "आर्थिक नियोजन",
         "enter_crop_name": "पिकाचे नाव भरा",
@@ -52,29 +52,36 @@ LANGUAGE_STRINGS = {
 }
 
 # Sidebar language selection with human-readable options
-lang_option = st.sidebar.selectbox("Select Language / भाषा निवडा", ["English", "मराठी"])
+lang_option = st.sidebar.selectbox(
+    "भाषा निवडा / Select Language",
+    ["मराठी", "English"],
+    index=0  # Set Marathi as default
+)
 language = "en" if lang_option == "English" else "mr"
 
 def inject_header():
-    """
-    Renders the fixed header at the top of the page.
-    """
     header = f"""
     <header>
         <div class="header-content">
-            <div class="logo">
+            <div class="logo marathi-text">
                 <span>🍃 {LANGUAGE_STRINGS[language]['main_header']}</span>
-                <!-- Replace the image source if you have a local SVG or other icon -->
-                <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" alt="home" class="home">
+             <!--   <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" alt="home">  -->
             </div>
-            <div class="user-actions">
+        <!--    <div class="user-actions marathi-text">
                 <span>{LANGUAGE_STRINGS[language]['welcome']}</span>
-            </div>
+            </div>  -->
         </div>
     </header>
     """
     st.markdown(header, unsafe_allow_html=True)
 
+# Update all text containers to use marathi-text class
+def display_crop_advisor():
+    # ... existing code ...
+    st.markdown(
+        f"<div class='chat-response marathi-text'><strong>{'सल्ला'}:</strong> {advice}</div>",
+        unsafe_allow_html=True
+    )
 def inject_footer():
     """
     Renders the fixed footer at the bottom of the page.
@@ -86,9 +93,9 @@ def inject_footer():
                 <p>© 2025 Smart Farm Manager. All rights reserved.</p>
             </div>
             <div class="footer-right">
-                <a href="#"><b>About</b></a>
+           <!-- <a href="#"><b>About</b></a>
                 <a href="#"><b>Contact</b></a>
-                <a href="#"><b>Privacy</b></a>
+                <a href="#"><b>Privacy</b></a>  -->
                 <span><b>Created by Team AgniDev</b></span>
             </div>
         </div>
@@ -113,7 +120,7 @@ def display_crop_advisor():
                 st.error(error)
             else:
                 st.markdown(
-                    f"<div class='chat-response'><strong>{'Advice' if language=='en' else 'सल्ला'}:</strong> {advice}</div>",
+                    f"<div class='chat-response marathi-text'><strong>{'सल्ला'}:</strong> {advice}</div>",
                     unsafe_allow_html=True
                 )
 
@@ -146,14 +153,23 @@ def display_image_analysis():
                 )
 
 def main():
-    # Load custom CSS
+    if 'show_lang' not in st.session_state:
+        st.session_state.show_lang = False
+    if 'language' not in st.session_state:
+        st.session_state.language = "mr"  # Default to Marathi
+
+    query_params = st.query_params
+    lang_param = query_params.get("lang", "mr")
+    
+    if lang_param in ["mr", "en"]:
+        st.session_state.language = lang_param
+
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     
     inject_header()
     st.markdown("<main>", unsafe_allow_html=True)
 
-    # Tab layout for different functionalities
     tabs = st.tabs([
         LANGUAGE_STRINGS[language]['crop_advisor'],
         LANGUAGE_STRINGS[language]['image_analysis'],
@@ -168,6 +184,7 @@ def main():
     
     with tabs[2]:
         display_financial_planning(language)
+    
     
     st.markdown("</main>", unsafe_allow_html=True)
     inject_footer()
