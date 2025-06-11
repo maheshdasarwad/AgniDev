@@ -20,7 +20,7 @@ header {
     left: 0;
     width: 100%;
     z-index: 9999;
-    background: linear-gradient(90deg, #2E7D32, #66BB6A);
+    background: linear-gradient(90deg, #1B5E20, #2E7D32);
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     margin-top: -5rem;
