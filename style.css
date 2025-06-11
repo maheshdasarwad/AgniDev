@@ -1,30 +1,19 @@
-/* --------------------------------
-   RESET & BASE STYLES
--------------------------------- */
+/* BASE STYLE */
+body {
+    background: linear-gradient(45deg, #2E7D32 30%, #f5deb3);
+    color: #2c3e50;
+    font-family: 'Montserrat', 'Playfair Display', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
 }
 
-body {
-    /* Main page background: white, black text for visibility */
-    background: #ffffff;
-    color: #000000;
-    font-family: 'Montserrat', 'Playfair Display', sans-serif;
-}
-
-/* Override Streamlit container to control width & horizontal padding */
-.block-container {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
-}
-
-/* --------------------------------
-   HEADER (PINNED AT TOP)
--------------------------------- */
+/* HEADER */
 header {
     position: fixed;
     top: 0;
@@ -33,101 +22,90 @@ header {
     z-index: 9999;
     background: linear-gradient(90deg, #2E7D32, #66BB6A);
     color: #ffffff;
-    margin: 0;
-    padding: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    margin-top: -5rem;
 }
 
 .header-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0.5rem 2rem;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items:first baseline;
+    margin-top: 5rem;
+    margin-left: 3rem;
 }
 
 .logo {
-    font-size: 1.8rem;
-    font-weight: bold;
+    font-size: 2rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
+    font-family: 'Playfair Display', serif;
 }
 
 .logo img {
-    height: 40px;
-    width: 40px;
+    height: 50px;
+    width: 50px;
 }
 
-.user-actions {
-    font-size: 1rem;
-}
-
-/* --------------------------------
-   MAIN CONTENT
--------------------------------- */
-main {
-    margin-top: -3rem;
-    padding-bottom: 80px;
-    padding-left: 50px;
-    padding-right: 50px;
-}
-
+/* Headings */
 h1, h2, h3, h4 {
     color: #2E7D32;
     margin-bottom: 1rem;
 }
 
+/* Cards & Sections */
 .image-analysis {
-    background-color: #000000;
-    color: #ffffff;
+    background-color: #33473a;
+    color: #f0ead6;
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
 }
 
+/* Chat response style */
 .chat-response {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #f5f3e8;
+    color: #2c3e50;
     padding: 1rem 1.5rem;
     border-radius: 10px;
     margin: 1.5rem 0;
     font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #2E7D32;
 }
 
-/* --------------------------------
-   BUTTONS
--------------------------------- */
+/* BUTTONS */
 button, .btn-primary {
     background-color: #2E7D32;
     color: #ffffff;
-    padding: 0.7rem 1.8rem;
+    padding: 0.7rem 0.5rem 1.8rem 0.5rem;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+
 }
 
 button:hover, .btn-primary:hover {
     background-color: #66BB6A;
+    box-shadow: 0 2px 10px rgba(72, 166, 77, 0.3);
+    transform: translateY(-1px);
 }
 
-/* --------------------------------
-   RESPONSIVE HEADER
--------------------------------- */
-@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
+.block-container {
+    max-width: 1200px !important;        
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    margin: 0 auto !important;         
 }
 
-/* --------------------------------
-   FOOTER (PINNED AT BOTTOM)
--------------------------------- */
+/* FOOTER */
 footer {
     position: fixed;
     bottom: 0;
@@ -139,13 +117,12 @@ footer {
     text-align: center;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
     z-index: 9999;
-    padding: 1rem 0;
 }
 
 .footer-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0;
+    height: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -153,11 +130,11 @@ footer {
 
 .footer-left p {
     margin: 0;
-    padding: 0;
+    padding: 0 20px;
 }
 
 .footer-right {
-    margin-right: 1rem;
+    padding: 0 20px;
 }
 
 .footer-right a, .footer-right span {
@@ -165,8 +142,107 @@ footer {
     color: #ffffff;
     text-decoration: none;
     font-weight: 600;
+    transition: color 0.3s ease;
 }
 
 .footer-right a:hover {
-    text-decoration: underline;
+    text-decoration: none;
+    color: #e8f5e9;
 }
+
+
+/* LANGUAGE SELECTOR ENHANCEMENT */
+.sidebar .selectbox {
+    padding: 0.8rem;
+    background: #fff;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.sidebar select {
+    background: transparent;
+    color: white;
+    border: 2px solid #ffffff60;
+    padding: 0.5rem;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 1.1rem;
+}
+
+/* MARATHI FONT SUPPORT */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap');
+
+:root {
+    --marathi-font: 'Noto Sans Devanagari', sans-serif;
+}
+
+.marathi-text {
+    font-family: var(--marathi-font);
+    line-height: 1.8;
+}
+
+/* IMPROVED RESPONSIVENESS */
+@media (max-width: 1200px) {
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+
+@media (max-width: 992px) {
+    main {
+        margin-top: -12rem;
+        padding: 0 30px 90px;
+    }
+    
+    .logo {
+        font-size: 1.8rem;
+    }
+    
+    .header-content {
+        padding: 0 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        margin-top: -10rem;
+        padding: 0 20px 80px;
+    }
+    
+    .logo {
+        font-size: 1.6rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .sidebar .selectbox {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    main {
+        padding: 0 15px 70px;
+        margin-top: -10rem;
+    }
+    
+    .logo {
+        font-size: 1.4rem;
+    }
+    
+    .logo img {
+        height: 40px;
+        width: 40px;
+    }
+    
+    button, .btn-primary {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
