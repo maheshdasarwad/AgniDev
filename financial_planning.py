@@ -13,8 +13,9 @@ class FinancialPlanner:
             raise ValueError("GOOGLE_API_KEY is not set. Please set it in your .env file.")
         genai.configure(api_key=api_key)
 
-        # Use the same high-quality multimodal model for text-based financial planning
-        self.model = genai.GenerativeModel('models/gemini-1.5-pro-002')
+        # Default model → pro
+        self.model_name = "models/gemini-1.5-pro-002"
+        self.model = genai.GenerativeModel(self.model_name)
 
         if self.language == "mr":
             self.financial_prompt = (
@@ -53,13 +54,29 @@ class FinancialPlanner:
             return None, ("Please enter a valid budget." if self.language=="en" else "कृपया वैध बजेट भरा.")
         
         prompt = self.financial_prompt.format(crop=crop, land=land, budget=budget)
+        
         try:
             response = self.model.generate_content(prompt)
             if response.text:
                 return response.text, None
             return None, "No financial plan generated."
+        
         except Exception as e:
-            return None, f"Error: {str(e)}"
+            error_msg = str(e)
+
+            # Fallback if quota exceeded
+            if "429" in error_msg or "quota" in error_msg.lower():
+                try:
+                    self.model_name = "models/gemini-1.5-flash"
+                    self.model = genai.GenerativeModel(self.model_name)
+                    response = self.model.generate_content(prompt)
+                    if response.text:
+                        return f"(⚡ Switched to Flash model)\n\n{response.text}", None
+                except Exception as inner_e:
+                    return None, f"AI Error (flash fallback failed): {inner_e}"
+            
+            return None, f"AI Error: {error_msg}"
+
 
 def display_financial_planning(language="en"):
     """
