@@ -13,9 +13,11 @@ class CropAdvisor:
             raise ValueError("GOOGLE_API_KEY not found. Please set it in your .env file.")
         genai.configure(api_key=api_key)
 
-        # Use a high-quality multimodal model for detailed text-based advice
-        self.model = genai.GenerativeModel('models/gemini-1.5-pro-002')
+        # Start with pro model
+        self.model_name = "models/gemini-1.5-pro-002"
+        self.model = genai.GenerativeModel(self.model_name)
 
+        # Prompts
         if self.language == "mr":
             self.base_prompt = (
                 "तुम्ही भारतीय शेतीत तज्ञ आहात आणि शेतकऱ्यांना पिकांच्या आरोग्य, रोग ओळख आणि सर्वोत्तम शेतीच्या पद्धतींबाबत सल्ला देण्यात माहिर आहात. "
@@ -63,8 +65,18 @@ class CropAdvisor:
             prompt = f"{self.base_prompt}{crop_name}"
             response = self.model.generate_content(prompt)
             return response.text, None
+
         except Exception as e:
-            error_msg = f"AI Error: {str(e)}"
-            if "API key" in error_msg.lower():
-                error_msg += "\nPlease check your GOOGLE_API_KEY configuration."
-            return None, error_msg
+            error_msg = str(e)
+
+            # If quota exceeded, fallback to flash model
+            if "429" in error_msg or "quota" in error_msg.lower():
+                try:
+                    self.model_name = "models/gemini-1.5-flash"
+                    self.model = genai.GenerativeModel(self.model_name)
+                    response = self.model.generate_content(prompt)
+                    return response.text, None
+                except Exception as inner_e:
+                    return None, f"AI Error (flash fallback failed): {inner_e}"
+
+            return None, f"AI Error: {error_msg}"
